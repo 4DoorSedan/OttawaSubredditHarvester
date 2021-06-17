@@ -7,7 +7,7 @@ from datetime import date
 from threading import Thread, Lock, Timer
 
 #Global Constants
-TEST_MODE = False
+VERBOSE = False
 THREAD_LOCK = Lock()
 SUBREDDIT = "ottawa"
 PULL_NUMBER = 10
@@ -52,6 +52,9 @@ def main():
             if not localDataCopy['{}'.format(key)]["data"]["title"] in loggedData:
                 permaLink = "https://www.reddit.com/{}".format(localDataCopy['{}'.format(key)]['data']['permalink'])
                 loggedData.update({key : permaLink})
+                if VERBOSE == True:
+                    print(f"Added Comment with tittle {key}")
+                
         #Log data to file every 24 hours
         if not currentDate == date.today():
             writeLoggedData(loggedData, currentDate)
