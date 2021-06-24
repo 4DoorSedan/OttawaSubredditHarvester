@@ -1,6 +1,7 @@
 import requests
 import sqlite3
 import string
+import logging
 from time import sleep
 
 SUBREDDIT = "ottawa"
@@ -8,10 +9,13 @@ PULL_NUMBER = 10
 LISTING = "new"
 TIMEFRAME = "day"
 VERBOSE = True
-SLEEP_TIME = 30
+SLEEP_TIME = 300
+LOGGER = logging.getLogger("LINK-GETTER")
+logging.basicConfig(filename="LOG.txt")
 
 def main():
     RUN = True
+    LOGGER.setLevel(10) if VERBOSE == True else LOGGER.setLevel (20) #Lets the logger print debug information if verbose mode is on
     loggedData = {}
     newData = {}
     #Get the connection to the database. Should repeat the promt until a valid one is returned from create_connection()
@@ -51,18 +55,24 @@ def main():
 
 #Funcion for pulling down the json data from reddit
 def pullData(DataDict: dict):
-    URL = f"https://www.reddit.com/r/{SUBREDDIT}/{LISTING}/.json?limit={PULL_NUMBER}&t={TIMEFRAME}"
-    response = {}
-    try: 
-        response = requests.get(URL, headers={"User-agent" : "yourbot"}, timeout=120)
-    except:
-        print("Error with catching data from reddit. Consult log")
-    #Push all the comment data into the passed in dictionary 
-    rawdata=response.json()
-    DataDict.clear()
-    for comment in rawdata['data']['children']:
-        newData = {comment['data']['title'] : comment}
-        DataDict.update(newData)
+    try:
+        URL = f"https://www.reddit.com/r/{SUBREDDIT}/{LISTING}/.json?limit={PULL_NUMBER}&t={TIMEFRAME}"
+        response = {}
+        try: 
+            response = requests.get(URL, headers={"User-agent" : "yourbot"}, timeout=120)
+        except Exception as e:
+            print("Error with catching data from reddit. Consult log")
+            LOGGER.exception("Cuaght exception %s while trying to pull data in", e, exc_info=True)
+        #Push all the comment data into the passed in dictionary 
+        rawdata=response.json()
+        DataDict.clear()
+        for comment in rawdata['data']['children']:
+            newData = {comment['data']['title'] : comment}
+            DataDict.update(newData)
+    except Exception as e:
+        print("There was an error during interpereting the data")
+        LOGGER.exception("There was an interperating the pulled data: %s", e, exc_info=True)
+        DataDict.clear()
 
 #Connects to the database
 def create_connection(dbPath):
@@ -88,4 +98,7 @@ _SQL_CREATE_TABLE_COMMAND = """CREATE TABLE IF NOT EXISTS POST_LINK (
 );"""
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        LOGGER.error("The following error was encountered: %s", e, exc_info=True)
