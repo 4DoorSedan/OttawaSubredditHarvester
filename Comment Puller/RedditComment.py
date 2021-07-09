@@ -1,9 +1,9 @@
 import time
 
-#TO DO
-#It appears that there the captureReplies() method is called it is returning a legitmeate reply and then an empyt list
-#this means that by the end of the recurisive call all of the returned comments are being spaced apart by an empty list
-#To reporduce -> Hit it at the breakpoint and then step through a single time and look at the elements being applied to the list
+#TODO:
+#Class seems to be working but the writing method at the end of the test routine needs to have an ecoding added to handled all the chars
+#Need to verify that all of the comments are being captured 
+
 
 class commentFactory:
     """
@@ -61,10 +61,14 @@ class comment:
                 for child in childrenData:    #Data will be passed in as a list
                     reply = commentFactory.createComment("replyComment", child["data"], self._commentData["id"])
                     if self._commentData["replyData"] == "":
-                        dataList.append(reply)
+                        if reply != None:
+                            dataList.append(reply)
                     else:
                         dataList.append(reply)
-                        dataList.append(reply.captureReplies())
+                        childComments = reply.captureReplies()
+                        if childComments != None:
+                            for reply in childComments:
+                                dataList.append(reply)
                 return dataList
             else:
                 raise NotImplementedError
@@ -85,7 +89,7 @@ class bodyComment(comment):
         def captureReplies(self):
             replies = []
             for com in self._createChildrenComments(self._commentData["replyData"]):
-                replies.append(com)
+                    replies.append(com)
             return replies
 
 class replyComment(comment):
@@ -101,9 +105,12 @@ class replyComment(comment):
                 self._commentData[key] = data[key]
 
         def captureReplies(self):
-            replies = []
-            replies.append(self._createChildrenComments(self._commentData["replyData"]))
-            return replies
+            replies = self._createChildrenComments(self._commentData["replyData"])
+            capturedReplies = []
+            if replies != None:
+                for com in replies:
+                    capturedReplies.append(com)
+            return capturedReplies
 
 class titleComment(comment):
         def __init__(self, data: dict, parent_id):
@@ -114,6 +121,13 @@ class titleComment(comment):
             for key in self._dataKeys: #Copy data over to the class
                 self._commentData[key] = data[key]
 
+
+
+
+
+#Code under this comment is used to test the class for debugging and devolpment reasons
+#Depending upon how long it has been since this has last been run, the reddit thread it uses 
+#might have been taken down or removed
 def testClass():
     import requests
     import json
@@ -125,7 +139,7 @@ def testClass():
     parentId = None
     commentFact = commentFactory()
     for index, item in enumerate(comments):
-        if index == 0:
+        if item["kind"] == "t3":
             comment = commentFact.createComment("titleComment", item["data"])
             parentId = comment.getparentId()
             listofComments.append(comment)
@@ -133,11 +147,12 @@ def testClass():
             comment = commentFact.createComment("bodyComment", item["data"], parentId)
             listofComments.append(comment)
     for com in listofComments:
-        if isinstance(com, bodyComment) & (com._commentData["replyData"] != ""):
+        if isinstance(com, bodyComment)|isinstance(com, replyComment) & (com._commentData["replyData"] != ""):
                 for reply in com.captureReplies():
                     listofComments.append(reply)
+    file = open("TestOutput.text", "wb")
     for com in listofComments:
-        print(com.getcommentId())
+        file.write(com._commentData["body"].encode(encoding="utf-16"))
 
 #Test part of script 
 if __name__ == "__main__":
