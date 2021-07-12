@@ -94,7 +94,8 @@ _SQL_CREATE_TABLE_COMMAND = """CREATE TABLE IF NOT EXISTS POST_LINK (
 	id integer PRIMARY KEY,
     post_title_sanatized text NOT NULL,
 	post_title text NOT NULL,
-	link text NOT NULL
+	link text NOT NULL,
+    Time_last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );"""
 
 if __name__ == "__main__":
