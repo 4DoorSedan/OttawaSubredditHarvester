@@ -186,7 +186,7 @@ class commentGrabberThread (threading.Thread):
                 databaseConnection.commit()
                 commentPullerLogger.info(f"Logged comments from: {postTitle}  {postLink}")
                 print(f"Updated info for {postTitle}")
-                time.sleep(3) #Wait inbetween requests to avoid hitting the max time
+                time.sleep(1) #Wait inbetween requests to avoid hitting the max time
                     
             
             else:
