@@ -1,10 +1,5 @@
 import time
 
-#TODO:
-#Class seems to be working but the writing method at the end of the test routine needs to have an ecoding added to handled all the chars
-#Need to verify that all of the comments are being captured 
-
-
 class commentFactory:
     """
     Factory class reponsible for the creation of comment objects of three types
@@ -22,7 +17,7 @@ class commentFactory:
         elif type == "replyComment":
             return replyComment(data, par_id)
         elif type == "titleComment":
-            return replyComment(data, par_id)
+            return titleComment(data, par_id)
         else:
             raise TypeError #This should probably be a different kind of error
 
@@ -79,12 +74,20 @@ class bodyComment(comment):
             self._commentData = {}
             self._commentData["parent_id"] = parent_id
             self._commentData["isReply"] = False
-            if data["replies"] != "":
-                self._commentData["replyData"] = data["replies"]["data"]["children"]
-            else:
-                self._commentData["replyData"] = data["replies"]
+            self._isValidComment = True
+            try:
+                if data["replies"] != "":
+                    self._commentData["replyData"] = data["replies"]["data"]["children"]
+                else:
+                    self._commentData["replyData"] = data["replies"]
+            except KeyError:
+                self._commentData["replyData"] =""
             for key in self._dataKeys: #Copy data over to the class
-                self._commentData[key] = data[key]
+                try:
+                    self._commentData[key] = data[key]
+                except KeyError:
+                    self._isValidComment = False
+                    self._commentData[key] = ""
 
         def captureReplies(self):
             replies = []
@@ -97,19 +100,28 @@ class replyComment(comment):
             self._commentData = {}
             self._commentData["parent_id"] = parent_id
             self._commentData["isReply"] = True
-            if data["replies"] != "":
-                self._commentData["replyData"] = data["replies"]["data"]["children"]
-            else:
+            self._isValidReply = True
+            try:
+                if data["replies"] != "":
+                    self._commentData["replyData"] = data["replies"]["data"]["children"]
+                else:
+                    self._commentData["replyData"] = ""
+            except KeyError:
                 self._commentData["replyData"] = ""
             for key in self._dataKeys: #Copy data over to the class
-                self._commentData[key] = data[key]
+                try:
+                    self._commentData[key] = data[key]
+                except KeyError:
+                    self._isValidReply = False
+                    self._commentData[key] = ""
 
         def captureReplies(self):
             replies = self._createChildrenComments(self._commentData["replyData"])
             capturedReplies = []
             if replies != None:
                 for com in replies:
-                    capturedReplies.append(com)
+                    if (com._isValidReply):
+                        capturedReplies.append(com)
             return capturedReplies
 
 class titleComment(comment):
@@ -117,10 +129,15 @@ class titleComment(comment):
             self._commentData = {}
             self._commentData["parent_id"] = data["id"]
             self._commentData["isReply"] = False
-            self._commentData["replyData"] = data["replies"]["data"]["children"]
+            self._commentData["replyData"] = []
             for key in self._dataKeys: #Copy data over to the class
-                self._commentData[key] = data[key]
+                try:
+                    self._commentData[key] = data[key]
+                except KeyError:
+                    self._commentData[key] = ""
 
+        def captureReplies(self): #There are no comments to capture from title so return empty list
+            return []
 
 
 
