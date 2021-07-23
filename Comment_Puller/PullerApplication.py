@@ -182,9 +182,10 @@ class commentGrabberThread (threading.Thread):
                         databaseConnection.execute(_SQL_UpdatePostData, (commentData["ups"], commentData["downs"], commentData["score"], commentData["total_awards_received"], commentData["body"], commentData["id"]))
                         databaseConnection.commit()
                     #Update the Post Link table with the new update time
-                databaseConnection.execute(_SQL_UpdatePostLinkTable, (postTitle, postTitle))
-                databaseConnection.commit
+                databaseConnection.execute(_SQL_UpdatePostLinkTable, (postTitle, postLink))
+                databaseConnection.commit()
                 commentPullerLogger.info(f"Logged comments from: {postTitle}  {postLink}")
+                print(f"Updated info for {postTitle}")
                 time.sleep(3) #Wait inbetween requests to avoid hitting the max time
                     
             
